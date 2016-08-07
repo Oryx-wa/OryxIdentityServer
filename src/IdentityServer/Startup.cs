@@ -87,6 +87,16 @@ namespace IdentityServer
             {
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
+                try
+                {
+                    using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>()
+                        .CreateScope())
+                    {
+                        serviceScope.ServiceProvider.GetService<ApplicationDbContext>()
+                             .Database.Migrate();
+                    }
+                }
+                catch { }
             }
             else
             {
