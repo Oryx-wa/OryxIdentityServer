@@ -2,7 +2,12 @@
 @using Microsoft.AspNetCore.Http
 @using Microsoft.AspNetCore.Http.Authentication
 @model LoginViewModel
-@inject SignInManager<ApplicationUser> SignInManager
+@inject SignInManager<User> SignInManager
+
+@{
+    Layout = "_LayoutOne";
+}
+
 
 @{
     ViewData["Title"] = "Log in";

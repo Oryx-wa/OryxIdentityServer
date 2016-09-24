@@ -9,26 +9,27 @@ using Microsoft.Extensions.Logging;
 using IdentityServer.Models;
 using IdentityServer.Models.ManageViewModels;
 using IdentityServer.Services;
+using IdentityServer.Data;
 
 namespace IdentityServer.Controllers
 {
     [Authorize]
-    public class ManageController : Controller
+    public class ManageController : BaseController
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
+        //private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly ISmsSender _smsSender;
         private readonly ILogger _logger;
 
         public ManageController(
-        UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager,
+        UserManager<User> userManager,
+        SignInManager<User> signInManager,
         IEmailSender emailSender,
         ISmsSender smsSender,
-        ILoggerFactory loggerFactory)
+        ILoggerFactory loggerFactory, ApplicationDbContext context) : base(userManager, context)
         {
-            _userManager = userManager;
+            //_userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _smsSender = smsSender;
@@ -317,7 +318,7 @@ namespace IdentityServer.Controllers
 
         #region Helpers
 
-        private void AddErrors(IdentityResult result)
+        private new void AddErrors(IdentityResult result)
         {
             foreach (var error in result.Errors)
             {
@@ -337,7 +338,7 @@ namespace IdentityServer.Controllers
             Error
         }
 
-        private Task<ApplicationUser> GetCurrentUserAsync()
+        private new Task<User> GetCurrentUserAsync()
         {
             return _userManager.GetUserAsync(HttpContext.User);
         }
