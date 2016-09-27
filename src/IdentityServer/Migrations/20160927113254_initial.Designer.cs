@@ -8,8 +8,8 @@ using IdentityServer.Data;
 namespace IdentityServer.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20160922170320_initail20")]
-    partial class initail20
+    [Migration("20160927113254_initial")]
+    partial class initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

@@ -91,6 +91,7 @@ namespace IdentityServer.Configuration
                         "openid",
                         "email",
                         "profile",
+                        "name",
                         StandardScopes.OfflineAccess.Name,
                         "read",
                         "OryxMCI.webapi"

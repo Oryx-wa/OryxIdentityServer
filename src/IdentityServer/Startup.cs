@@ -14,6 +14,12 @@ using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
 using IdentityServer4.Validation;
 using IdentityServer.Middlewares;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
+using Microsoft.AspNetCore.Authorization;
+using System.Collections.Generic;
+using IdentityModel;
 
 namespace IdentityServer
 {
@@ -109,15 +115,41 @@ namespace IdentityServer
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
-            services.AddIdentity<User, Role>(options => options.User.AllowedUserNameCharacters = null)
-                .AddEntityFrameworkStores<ApplicationDbContext, int>()
-                .AddUserStore<UserStore<User, Role, ApplicationDbContext, int>>()
-                .AddRoleStore<RoleStore<Role, ApplicationDbContext, int>>()
-                //.AddRoleManager<RoleManager<Role>>()
-                .AddDefaultTokenProviders();
+
+            services.AddIdentity<User, Role>(options =>
+            {
+                options.User.AllowedUserNameCharacters = null;
+                options.Cookies.ApplicationCookie.AuthenticationScheme = "Cookies";
+                options.ClaimsIdentity.UserIdClaimType = JwtClaimTypes.Subject;
+                options.ClaimsIdentity.UserNameClaimType = JwtClaimTypes.Name;
+                options.ClaimsIdentity.RoleClaimType = JwtClaimTypes.Role;
+            })
+               .AddEntityFrameworkStores<ApplicationDbContext, int>()
+               .AddUserStore<UserStore<User, Role, ApplicationDbContext, int>>()
+               .AddRoleStore<RoleStore<Role, ApplicationDbContext, int>>()
+               //.AddRoleManager<RoleManager<Role>>()
+               .AddDefaultTokenProviders();
+
+            services.AddTransient<IUserClaimsPrincipalFactory<User>, IdentityServerUserClaimsPrincipalFactory>();
+
+            /*
+
+            services.AddIdentity<User, Role>(options =>
+            {
+                options.User.AllowedUserNameCharacters = null;
+                options.Cookies.ApplicationCookie.AuthenticationScheme = "Cookies";
+                options.ClaimsIdentity.UserIdClaimType = JwtClaimTypes.Subject;
+                options.ClaimsIdentity.UserNameClaimType = JwtClaimTypes.Name;
+                options.ClaimsIdentity.RoleClaimType = JwtClaimTypes.Role;
+            })
+            .AddEntityFrameworkStores<ApplicationDbContext, int>()
+            .AddUserStore<UserStore<User, Role, ApplicationDbContext, int>>()
+            .AddRoleStore<RoleStore<Role, ApplicationDbContext, int>>()
+           .AddEntityFrameworkStores<ApplicationDbContext>()
+           .AddDefaultTokenProviders();
 
             services.AddTransient<IUserClaimsPrincipalFactory<ApplicationUser>, IdentityServerUserClaimsPrincipalFactory>();
-
+             */
             services.AddMvc();
 
             services.AddAuthorization(options =>
@@ -166,6 +198,8 @@ namespace IdentityServer
 
             // add the installer
             app.UseInstaller();
+
+
 
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
             app.UseJwtBearerAuthentication(new JwtBearerOptions

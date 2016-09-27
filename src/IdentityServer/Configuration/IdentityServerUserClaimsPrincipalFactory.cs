@@ -13,13 +13,13 @@ using IdentityServer4;
 
 namespace IdentityServer.Configuration
 {
-    public class IdentityServerUserClaimsPrincipalFactory : UserClaimsPrincipalFactory<ApplicationUser, IdentityRole>
+    public class IdentityServerUserClaimsPrincipalFactory : UserClaimsPrincipalFactory<User, Role>
     {
-        public IdentityServerUserClaimsPrincipalFactory(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, IOptions<IdentityOptions> optionsAccessor) : base(userManager, roleManager, optionsAccessor)
+        public IdentityServerUserClaimsPrincipalFactory(UserManager<User> userManager, RoleManager<Role> roleManager, IOptions<IdentityOptions> optionsAccessor) : base(userManager, roleManager, optionsAccessor)
         {
         }
 
-        public async override Task<ClaimsPrincipal> CreateAsync(ApplicationUser user)
+        public async override Task<ClaimsPrincipal> CreateAsync(User user)
         {
             var cp = await base.CreateAsync(user);
 
