@@ -107,8 +107,9 @@ namespace IdentityServer
               .AddInMemoryScopes(Scopes.Get())
               .SetTemporarySigningCredential();
 
-            services.AddTransient<IProfileService, AspIdProfileService>();
-            services.AddTransient<IResourceOwnerPasswordValidator, ResourceOwnerPasswordValidator>();
+            // services.AddTransient<IProfileService, AspIdProfileService>();
+            services.AddTransient<IProfileService, DbProfileService>();
+            // services.AddTransient<IResourceOwnerPasswordValidator, ResourceOwnerPasswordValidator>();
             services.AddTransient<IProfileService, ResouceOwnerProfileService>();
 
             // Add framework services.
