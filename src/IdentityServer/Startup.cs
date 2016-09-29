@@ -10,16 +10,10 @@ using IdentityServer.Models;
 using IdentityServer.Services;
 using IdentityServer.Configuration;
 using IdentityServer4.Services;
+using IdentityModel;
 using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
 using IdentityServer4.Validation;
-using IdentityServer.Middlewares;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.AspNetCore.Authorization.Infrastructure;
-using Microsoft.AspNetCore.Authorization;
-using System.Collections.Generic;
-using IdentityModel;
 
 namespace IdentityServer
 {
@@ -47,7 +41,6 @@ namespace IdentityServer
         public IHostingEnvironment Environment { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
-        /*
         public void ConfigureServices(IServiceCollection services)
         {
             var builder = services.AddIdentityServer(options =>
@@ -66,103 +59,25 @@ namespace IdentityServer
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
-            //
-            services.AddIdentity<User, Role>(options => options.User.AllowedUserNameCharacters = null)
-                .AddEntityFrameworkStores<ApplicationDbContext, int>()
-                .AddUserStore<UserStore<User, Role, ApplicationDbContext, int>>()
-                .AddRoleStore<RoleStore<Role, ApplicationDbContext, int>>()
-                //.AddRoleManager<RoleManager<Role>>()
-                .AddDefaultTokenProviders();
-           //
-
-
-
-
-
+            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.Cookies.ApplicationCookie.AuthenticationScheme = "Cookies";
+                options.ClaimsIdentity.UserIdClaimType = JwtClaimTypes.Subject;
+                options.ClaimsIdentity.UserNameClaimType = JwtClaimTypes.Name;
+                options.ClaimsIdentity.RoleClaimType = JwtClaimTypes.Role;
+            })
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
             services.AddTransient<IUserClaimsPrincipalFactory<ApplicationUser>, IdentityServerUserClaimsPrincipalFactory>();
 
             services.AddMvc();
-
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("HasPermission", policy => policy.Requirements.Add(new AuthorizationPolicies.HasPermissionRequirement()));
-            });
-
-           //
 
             // Add application services.
             services.AddTransient<IEmailSender, AuthMessageSender>();
             services.AddTransient<ISmsSender, AuthMessageSender>();
         }
-*/
+
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-
-        public void ConfigureServices(IServiceCollection services)
-        {
-            var builder = services.AddIdentityServer(options =>
-            {
-                options.AuthenticationOptions.AuthenticationScheme = "Cookies";
-            })
-              .AddInMemoryClients(Clients.Get())
-              .AddInMemoryScopes(Scopes.Get())
-              .SetTemporarySigningCredential();
-
-            // services.AddTransient<IProfileService, AspIdProfileService>();
-            services.AddTransient<IProfileService, DbProfileService>();
-            // services.AddTransient<IResourceOwnerPasswordValidator, ResourceOwnerPasswordValidator>();
-            services.AddTransient<IProfileService, ResouceOwnerProfileService>();
-
-            // Add framework services.
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-
-
-            services.AddIdentity<User, Role>(options =>
-            {
-                options.User.AllowedUserNameCharacters = null;
-                options.Cookies.ApplicationCookie.AuthenticationScheme = "Cookies";
-                options.ClaimsIdentity.UserIdClaimType = JwtClaimTypes.Subject;
-                options.ClaimsIdentity.UserNameClaimType = JwtClaimTypes.Name;
-                options.ClaimsIdentity.RoleClaimType = JwtClaimTypes.Role;
-            })
-               .AddEntityFrameworkStores<ApplicationDbContext, int>()
-               .AddUserStore<UserStore<User, Role, ApplicationDbContext, int>>()
-               .AddRoleStore<RoleStore<Role, ApplicationDbContext, int>>()
-               //.AddRoleManager<RoleManager<Role>>()
-               .AddDefaultTokenProviders();
-
-            services.AddTransient<IUserClaimsPrincipalFactory<User>, IdentityServerUserClaimsPrincipalFactory>();
-
-            /*
-
-            services.AddIdentity<User, Role>(options =>
-            {
-                options.User.AllowedUserNameCharacters = null;
-                options.Cookies.ApplicationCookie.AuthenticationScheme = "Cookies";
-                options.ClaimsIdentity.UserIdClaimType = JwtClaimTypes.Subject;
-                options.ClaimsIdentity.UserNameClaimType = JwtClaimTypes.Name;
-                options.ClaimsIdentity.RoleClaimType = JwtClaimTypes.Role;
-            })
-            .AddEntityFrameworkStores<ApplicationDbContext, int>()
-            .AddUserStore<UserStore<User, Role, ApplicationDbContext, int>>()
-            .AddRoleStore<RoleStore<Role, ApplicationDbContext, int>>()
-           .AddEntityFrameworkStores<ApplicationDbContext>()
-           .AddDefaultTokenProviders();
-
-            services.AddTransient<IUserClaimsPrincipalFactory<ApplicationUser>, IdentityServerUserClaimsPrincipalFactory>();
-             */
-            services.AddMvc();
-
-            services.AddAuthorization(options =>
-            {
-                options.AddPolicy("HasPermission", policy => policy.Requirements.Add(new AuthorizationPolicies.HasPermissionRequirement()));
-            });
-
-            // Add application services.
-            services.AddTransient<IEmailSender, AuthMessageSender>();
-            services.AddTransient<ISmsSender, AuthMessageSender>();
-        }
-
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
@@ -195,12 +110,6 @@ namespace IdentityServer
             // Add external authentication middleware below. To configure them please see http://go.microsoft.com/fwlink/?LinkID=532715
 
             app.UseIdentityServer();
-
-
-            // add the installer
-            app.UseInstaller();
-
-
 
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
             app.UseJwtBearerAuthentication(new JwtBearerOptions
