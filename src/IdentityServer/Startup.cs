@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
 using IdentityServer4.Validation;
 using System;
+using IdentityServer4.AccessTokenValidation;
 
 namespace IdentityServer
 {
@@ -44,35 +45,37 @@ namespace IdentityServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            var builder = services.AddIdentityServer(options =>
-            {
-                options.AuthenticationOptions.AuthenticationScheme = "Cookies";
-            })
-            .AddInMemoryClients(Clients.Get())
-            .AddInMemoryScopes(Scopes.Get())
-            .SetTemporarySigningCredential();
+            var builder = services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+
+            services.AddIdentity<ApplicationUser, IdentityRole>()
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
+
+            services.AddMvc();
 
             services.AddTransient<IProfileService, AspIdProfileService>();
             services.AddTransient<IResourceOwnerPasswordValidator, ResourceOwnerPasswordValidator>();
             services.AddTransient<IProfileService, ResouceOwnerProfileService>();
 
-            // Add framework services.
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            // Add application services.
+            services.AddTransient<IEmailSender, AuthMessageSender>();
+            services.AddTransient<ISmsSender, AuthMessageSender>();
 
-            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            services.AddDeveloperIdentityServer(options =>
             {
-                options.Cookies.ApplicationCookie.AuthenticationScheme = "Cookies";
-                options.ClaimsIdentity.UserIdClaimType = JwtClaimTypes.Subject;
-                options.ClaimsIdentity.UserNameClaimType = JwtClaimTypes.Name;
-                options.ClaimsIdentity.RoleClaimType = JwtClaimTypes.Role;
+                options.AuthenticationOptions.AuthenticationScheme = "Cookies";
             })
-            .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddDefaultTokenProviders();
+            .AddInMemoryClients(Clients.Get())
+            .AddInMemoryScopes(Scopes.Get())
+            .SetTemporarySigningCredential()
+            .AddAspNetIdentity<ApplicationUser>()
+            .AddProfileService<AspIdProfileService>();
 
-            services.AddTransient<IUserClaimsPrincipalFactory<ApplicationUser>, IdentityServerUserClaimsPrincipalFactory>();
 
-            services.AddMvc();
+
+            // Add framework services.          
 
             services.Configure<IdentityOptions>(options =>
             {
@@ -87,18 +90,22 @@ namespace IdentityServer
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(30);
                 options.Lockout.MaxFailedAccessAttempts = 10;
 
-                // Cookie settings
-                options.Cookies.ApplicationCookie.ExpireTimeSpan = TimeSpan.FromDays(150);
-                options.Cookies.ApplicationCookie.LoginPath = "/Account/LogIn";
-                options.Cookies.ApplicationCookie.LogoutPath = "/Account/LogOff";
+                //// Cookie settings
+                //options.Cookies.ApplicationCookie.ExpireTimeSpan = TimeSpan.FromDays(150);
+                //options.Cookies.ApplicationCookie.LoginPath = "/Account/LogIn";
+                //options.Cookies.ApplicationCookie.LogoutPath = "/Account/LogOff";
 
                 // User settings
                 options.User.RequireUniqueEmail = true;
             });
 
-            // Add application services.
-            services.AddTransient<IEmailSender, AuthMessageSender>();
-            services.AddTransient<ISmsSender, AuthMessageSender>();
+
+
+
+
+
+
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -135,20 +142,38 @@ namespace IdentityServer
 
             app.UseIdentityServer();
 
-            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-            app.UseJwtBearerAuthentication(new JwtBearerOptions
+            //JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+            //app.UseJwtBearerAuthentication(new JwtBearerOptions
+            //{
+            //    Authority = "http://localhost:5000",
+            //    Audience = "http://localhost:5000/resources",
+            //    RequireHttpsMetadata = false
+            //});
+
+            //app.UseJwtBearerAuthentication(new JwtBearerOptions
+            //{
+            //    Authority = "http://0.0.0.0:5000",
+            //    Audience = "http://0.0.0.0:5000/resources",
+            //    RequireHttpsMetadata = false
+            //});
+
+             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+
+            IdentityServerAuthenticationOptions identityServerValidationOptions = new IdentityServerAuthenticationOptions
             {
                 Authority = "http://localhost:5000",
-                Audience = "http://localhost:5000/resources",
+                ScopeName = "dataEventRecords",
+                ScopeSecret = "dataEventRecordsSecret",
+                AutomaticAuthenticate = true,
+                SupportedTokens = SupportedTokens.Both,
+                // TokenRetriever = _tokenRetriever,
+                // required if you want to return a 403 and not a 401 for forbidden responses
+                AutomaticChallenge = true,
                 RequireHttpsMetadata = false
-            });
+                 
+            };
 
-            app.UseJwtBearerAuthentication(new JwtBearerOptions
-            {
-                Authority = "http://0.0.0.0:5000",
-                Audience = "http://0.0.0.0:5000/resources",
-                RequireHttpsMetadata = false
-            });
+            app.UseIdentityServerAuthentication(identityServerValidationOptions);
 
             app.UseMvc(routes =>
             {

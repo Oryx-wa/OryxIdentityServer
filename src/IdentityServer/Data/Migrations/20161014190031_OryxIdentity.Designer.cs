@@ -8,7 +8,7 @@ using IdentityServer.Data;
 namespace IdentityServer.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20161014182722_OryxIdentity")]
+    [Migration("20161014190031_OryxIdentity")]
     partial class OryxIdentity
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -50,6 +50,8 @@ namespace IdentityServer.Data.Migrations
                     b.Property<string>("PhoneNumber");
 
                     b.Property<bool>("PhoneNumberConfirmed");
+
+                    b.Property<string>("Port");
 
                     b.Property<string>("SecurityStamp");
 

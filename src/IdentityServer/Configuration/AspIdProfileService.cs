@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using IdentityServer4.Models;
 using Microsoft.AspNetCore.Identity;
 using IdentityServer.Models;
+using IdentityServer4.Extensions;
+using IdentityModel;
+using System.Security.Claims;
 
 namespace IdentityServer.Configuration
 {
@@ -28,12 +31,20 @@ namespace IdentityServer.Configuration
                 var user = await _userManager.FindByIdAsync(sub);
                 var cp = await _claimsFactory.CreateAsync(user);
 
-                var claims = cp.Claims;
-                if (context.AllClaimsRequested == false || 
-                    (context.RequestedClaimTypes != null && context.RequestedClaimTypes.Any()))
+                var claims = cp.Claims.ToList();
+                if (!context.AllClaimsRequested)
                 {
-                    claims = claims.Where(x => context.RequestedClaimTypes.Contains(x.Type)).ToArray().AsEnumerable();
+                    claims = claims.Where(claim => context.RequestedClaimTypes.Contains(claim.Type)).ToList();
                 }
+                //claims.Add(new Claim(JwtClaimTypes., $"{ user.LastName}, {user.FirstName}"));
+                claims.Add(new Claim(JwtClaimTypes.FamilyName, user.LastName));
+                claims.Add(new Claim(JwtClaimTypes.GivenName, user.FirstName));
+                
+
+                claims.Add(new System.Security.Claims.Claim(StandardScopes.Email.Name, user.Email));
+                claims.Add(new System.Security.Claims.Claim("port", user.Port));
+                claims.Add(new System.Security.Claims.Claim("full_name", $"{ user.LastName}, {user.FirstName}"));
+
 
                 context.IssuedClaims = claims;
             }
@@ -41,19 +52,9 @@ namespace IdentityServer.Configuration
 
         public async Task IsActiveAsync(IsActiveContext context)
         {
-            var locked = true;
-
-            var sub = context.Subject.FindFirst("sub")?.Value;
-            if (sub != null)
-            {
-                var user = await _userManager.FindByIdAsync(sub);
-                if (user != null)
-                {
-                    locked = await _userManager.IsLockedOutAsync(user);
-                }
-            }
-
-            context.IsActive = !locked;
+            var sub = context.Subject.GetSubjectId();
+            var user = await _userManager.FindByIdAsync(sub);
+            context.IsActive = user != null;
         }
     }
 }

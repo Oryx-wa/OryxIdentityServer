@@ -2,12 +2,14 @@
   "userSecretsId": "aspnet-IdentityServer-f97fcb01-af88-432d-8cd4-29464af4307b",
 
   "dependencies": {
-    "IdentityServer4": "1.0.0-beta5",
+    "IdentityServer4": "1.0.0-rc2",
+    "IdentityServer4.AspNetIdentity": "1.0.0-rc2",
     "Microsoft.AspNetCore.Authentication.Cookies": "1.0.0",
     "Microsoft.AspNetCore.Authentication.JwtBearer": "1.0.0",
     "Microsoft.AspNetCore.Diagnostics": "1.0.0",
     "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore": "1.0.0",
-    "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "1.0.0",
+    "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "1.0.0",    
+    "IdentityServer4.AccessTokenValidation": "1.0.1-rc2",
     "Microsoft.AspNetCore.Mvc": "1.0.0",
     "Microsoft.AspNetCore.Razor.Tools": {
       "version": "1.0.0-preview2-final",

@@ -17,6 +17,11 @@ namespace IdentityServer.Data.Migrations
                 name: "LastName",
                 table: "AspNetUsers",
                 nullable: true);
+
+            migrationBuilder.AddColumn<string>(
+                name: "Port",
+                table: "AspNetUsers",
+                nullable: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -27,6 +32,10 @@ namespace IdentityServer.Data.Migrations
 
             migrationBuilder.DropColumn(
                 name: "LastName",
+                table: "AspNetUsers");
+
+            migrationBuilder.DropColumn(
+                name: "Port",
                 table: "AspNetUsers");
         }
     }
