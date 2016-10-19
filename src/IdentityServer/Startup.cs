@@ -77,7 +77,7 @@ namespace IdentityServer
 
 
 
-            // Add framework services.          
+            // Add framework services.
 
             services.Configure<IdentityOptions>(options =>
             {
@@ -172,7 +172,7 @@ namespace IdentityServer
                 // required if you want to return a 403 and not a 401 for forbidden responses
                 AutomaticChallenge = true,
                 RequireHttpsMetadata = false
-                 
+
             };
 
             app.UseIdentityServerAuthentication(identityServerValidationOptions);

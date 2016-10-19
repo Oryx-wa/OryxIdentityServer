@@ -13,6 +13,8 @@ namespace IdentityServer.Models
         public string FirstName { get; set; }
         public string LastName { get; set; }
 
+        public string MemberRole { get; set; }
+
         public string Port { get; set; }
 
     }

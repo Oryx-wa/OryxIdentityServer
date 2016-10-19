@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
@@ -11,6 +9,10 @@ using Microsoft.Extensions.Logging;
 using IdentityServer.Models;
 using IdentityServer.Models.AccountViewModels;
 using IdentityServer.Services;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using System;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace IdentityServer.Controllers
 {
@@ -18,6 +20,7 @@ namespace IdentityServer.Controllers
     public class AccountController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly ISmsSender _smsSender;
@@ -25,16 +28,44 @@ namespace IdentityServer.Controllers
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager,
             SignInManager<ApplicationUser> signInManager,
             IEmailSender emailSender,
             ISmsSender smsSender,
             ILoggerFactory loggerFactory)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
             _smsSender = smsSender;
             _logger = loggerFactory.CreateLogger<AccountController>();
+
+           // createRoles();
+        }
+
+        private async void createRoles()
+        {
+            if (!await _roleManager.RoleExistsAsync("Administrator"))
+            {
+                await _roleManager.CreateAsync(new IdentityRole("Administrator"));
+            }
+
+            if (!await _roleManager.RoleExistsAsync("MCI User"))
+            {
+                await _roleManager.CreateAsync(new IdentityRole("MCI User"));
+            }
+
+            if (!await _roleManager.RoleExistsAsync("MCI Manager"))
+            {
+                await _roleManager.CreateAsync(new IdentityRole("MCI Manager"));
+            }
+        }
+
+        public JsonResult GetRoles() {
+
+            var resulltData = _roleManager.Roles.Select(c=> new { Value = c.Name, Text = c.Name }).ToList();
+            return Json(new { result = resulltData });
         }
 
         //
@@ -87,11 +118,30 @@ namespace IdentityServer.Controllers
         //
         // GET: /Account/Register
         [HttpGet]
+        //[Authorize]
         [AllowAnonymous]
         public IActionResult Register(string returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
+            var dropdownVD = new SelectList(GetAllRoles(), "Value", "Text");
+            ViewData["MemberRole"] = dropdownVD;
+
+            var portDropdown = new SelectList(GetAllPorts(), "Value", "Text");
+            ViewData["Port"] = portDropdown;
             return View();
+        }
+
+        private IEnumerable GetAllPorts()
+        {
+            var port =  new List<a>() {new  a{ Value = "LAGOS", Text = "LAGOS" }, new a{ Value = "CALABAR", Text = "CALABAR" }, new a{ Value = "PORT HARCOURT", Text = "PORT HARCOURT" } };
+            var resulltData = port.ToList();
+            return resulltData;
+        }
+
+        private IEnumerable GetAllRoles()
+        {
+            var resulltData = _roleManager.Roles.Select(c => new { Value = c.Name, Text = c.Name }).ToList();
+            return resulltData;
         }
 
         //
@@ -104,11 +154,19 @@ namespace IdentityServer.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email,
-                    FirstName = model.FirstName, LastName = model.LastName, Port = model.Port };
+                var user = new ApplicationUser
+                {
+                    UserName = model.Email,
+                    Email = model.Email,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    Port = model.Port,
+                    MemberRole = model.MemberRole
+                };
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
+                    await _userManager.AddToRoleAsync(user, user.MemberRole);
                     // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=532713
                     // Send an email with this link
                     //var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -473,5 +531,11 @@ namespace IdentityServer.Controllers
         }
 
         #endregion
+    }
+
+    public class a
+    {
+        public string Text { get; set; }
+        public string Value { get; set; }
     }
 }
