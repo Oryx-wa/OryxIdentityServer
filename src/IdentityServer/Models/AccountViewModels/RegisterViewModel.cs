@@ -35,5 +35,8 @@ namespace IdentityServer.Models.AccountViewModels
         [Required]
         [DataType(DataType.Text)]
         public string Port { get; set; }
+
+        [Required]
+        public string MemberRole { get; set; }
     }
 }
