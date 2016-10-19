@@ -3,35 +3,37 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Security.Claims;
+using IdentityServer4.Models;
 
 namespace IdentityServer.Configuration
 {
     public class ResourceOwnerPasswordValidator : IResourceOwnerPasswordValidator
     {
-        //Task<CustomGrantValidationResult> IResourceOwnerPasswordValidator.ValidateAsync(string userName, string password, ValidatedTokenRequest request)
-        //{
-        //    // Check The UserName And Password In Database, Return The Subject If Correct, Return Null Otherwise
-        //    string subject = null;
+        private IEnumerable<Claim> optionalClaims;
 
-        //    if (userName == "tayo.adegbola@oryx-wa.com" && password == "Oryx@101")
-        //    {
-        //        subject = "tayo.adegbola@oryx-wa.com";
-        //    }
-
-        //    if (subject == null)
-        //    {
-        //        var result = new CustomGrantValidationResult("Username Or Password Incorrect");
-        //        return Task.FromResult(result);
-        //    }
-        //    else
-        //    {
-        //        var result = new CustomGrantValidationResult(subject, "password");
-        //        return Task.FromResult(result);
-        //    }
-        //}
+        
         public Task ValidateAsync(ResourceOwnerPasswordValidationContext context)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (context.UserName == "tayo.adegbola@oryx-wa.com" && context.Password == "Oryx@101")
+                {
+                    context.Result = new GrantValidationResult(subject: "tayo.adegbola@oryx-wa.com", authenticationMethod: "custom", claims: optionalClaims);
+                    return Task.FromResult(context.Result);
+                }
+                else
+                {
+                    context.Result = new GrantValidationResult(TokenRequestErrors.InvalidGrant, "invalid custom credential");
+                    return Task.FromResult(context.Result);
+                }
+
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
         }
     }
 }

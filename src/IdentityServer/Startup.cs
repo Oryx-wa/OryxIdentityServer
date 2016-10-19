@@ -70,8 +70,10 @@ namespace IdentityServer
             .AddInMemoryClients(Clients.Get())
             .AddInMemoryScopes(Scopes.Get())
             .SetTemporarySigningCredential()
+            .AddResourceOwnerValidator<ResourceOwnerPasswordValidator>()
             .AddAspNetIdentity<ApplicationUser>()
             .AddProfileService<AspIdProfileService>();
+            //.AddProfileService<ResouceOwnerProfileService>();
 
 
 

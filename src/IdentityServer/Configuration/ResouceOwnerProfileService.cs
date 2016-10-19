@@ -51,12 +51,39 @@ namespace IdentityServer.Configuration
 
         Task IProfileService.GetProfileDataAsync(ProfileDataRequestContext context)
         {
-            throw new NotImplementedException();
+            string subject = context.Subject.Claims.ToList().Find(s => s.Type == "sub").Value;
+            try
+            {
+                // Get Claims From Database, And Use Subject To Find The Related Claims, As A Subject Is An Unique Identity Of User
+                List<string> claimStringList = new List<string> { "role", "OryxMCI" };
+
+                //if (claimStringList == null)
+                //{
+                //    return Task.FromResult(0);
+                //}
+                //else
+                //{
+                //    List<Claim> claimList = new List<Claim>();
+                //    for (int i = 0; i < claimStringList.Count; i++)
+                //    {
+                //        claimList.Add(new Claim("role", claimStringList[i]));
+                //    }
+                //    context.IssuedClaims = claimList.Where(x => context.RequestedClaimTypes.Contains(x.Type));
+                //    return Task.FromResult(0);
+                //context.IssuedClaims = claimStringList
+                return Task.FromResult(context.IssuedClaims);
+            }
+            catch
+            {
+                return Task.FromResult(0);
+                //    }
+            }
         }
 
         Task IProfileService.IsActiveAsync(IsActiveContext context)
         {
-            throw new NotImplementedException();
+            context.IsActive = true;
+            return Task.FromResult(context.IsActive);
         }
     }
 }
